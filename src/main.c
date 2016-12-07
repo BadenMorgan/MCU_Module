@@ -383,9 +383,15 @@ void Decode(){
     }
     #ifdef _LCD_
     else{   //if buffer contains more than 6 bytes then LCD command
+        Stamp[8] = TIM_GetCounter(TIM14);
+        Stamp[9] = TIM_GetCounter(TIM14);
         uint8_t lcdbuffer = buffercount - bufferreadcount;
         uint8_t NewSCroll = lcdbuffer - 5;
         char UpdateToo[NewSCroll];
+        int j;
+        for( j = 0; j < NewSCroll ; j++){
+            UpdateToo[j] = 0;
+        }
         int i;
         //transferring serial data the rx buffer then string to print into a separate buffer
         for(i = 0; i < lcdbuffer ; i++){
@@ -393,15 +399,14 @@ void Decode(){
 
             if(i > 2 && i < lcdbuffer - 2){
                 UpdateToo[i - 3] = RXBuffer[i];
-                UpdateToo[i - 2] = 0;
             }
 
         }
         //checking validity of the package
         uint8_t check = checksumcal(RXBuffer,lcdbuffer - 2);
-        if((RXBuffer[0] == StartByte) && (RXBuffer[1] == address) && (RXBuffer[2] == LCDPRINT) && (RXBuffer[lcdbuffer - 1] == EndByte)){//(RXBuffer[lcdbuffer - 2] == check) &&
+        if((RXBuffer[0] == StartByte) && (RXBuffer[1] == address) && (RXBuffer[2] == LCDPRINT) && (RXBuffer[lcdbuffer - 2] == 0x04) && (RXBuffer[lcdbuffer - 1] == EndByte)){//(RXBuffer[lcdbuffer - 2] == check) &&
             PopulateBuffer(UpdateToo);
-            printbyte(0x4C);
+            //printbyte(0x4C);
             delay(1000);
             sendReport(SUCCESS);
         }
@@ -896,14 +901,15 @@ void Test(){
     uint8_t tempbit = testflag;
     testflag = GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_7);
     if(tempbit != testflag){
-        delay(100);
-        DeliverxMany = deliverytest;
+        //delay(100);
+        //DeliverxMany = deliverytest;
 #ifdef _EXTRA_
-        print16bits(DeliverxMany,0x43,3);
+        //print16bits(DeliverxMany,0x43,3);
 #endif
-        jam = 0;
-        task = 1;
-        sendfakeReport();
+        //jam = 0;
+        //task = 1;
+        //sendfakeReport();
+        PopulateBuffer("Dispensing      Components");
     }
 
 }
